@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>unzioUZ | Ahmed Abdel Hakim</title>
+  <style>
+    body { background: #0a0a10; color: #fff; font-family: sans-serif; direction: rtl; text-align: center; padding: 20px; }
+    .logo { font-size: 2.5em; background: linear-gradient(135deg, #c084fc, #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: bold; }
+    .card { background: rgba(20,20,35,0.8); border-radius: 20px; padding: 30px; max-width: 600px; margin: 30px auto; border: 1px solid rgba(255,255,255,0.1); }
+    textarea, select, input[type="file"] { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); border-radius: 15px; padding: 12px; color: white; margin-bottom: 15px; box-sizing: border-box; }
+    button { background: linear-gradient(135deg, #a855f7, #6366f1); width: 100%; padding: 14px; border: none; border-radius: 30px; font-weight: bold; color: white; cursor: pointer; }
+    button:disabled { opacity: 0.6; }
+    .result video { max-width: 100%; border-radius: 15px; margin-top: 15px; }
+    .owner { color: #c084fc; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <div class="logo">unzioUZ</div>
+  <p style="color:#b0b0d0;">أقوى مولد فيديو بالذكاء الاصطناعي – يولّد فيديو حقيقي الآن</p>
+  <div class="card">
+    <label>📷 ارفع صورتك (لتحويلها إلى فيديو أو لدمج وجهك)</label>
+    <input type="file" id="imageInput" accept="image/*">
+    <label>🎬 ارفع فيديو هدف (فقط إذا أردت دمج وجهك في فيديو موجود)</label>
+    <input type="file" id="videoInput" accept="video/*">
+    <select id="mode">
+      <option value="txt2vid">صورة إلى فيديو (تحريك)</option>
+      <option value="faceswap">دمج وجهي في الفيديو</option>
+    </select>
+    <button id="generateBtn" onclick="generate()">🚀 بدء التوليد الحقيقي</button>
+    <div id="status" style="margin-top:15px; color:#aaa;"></div>
+    <div class="result" id="output"></div>
+  </div>
+  <footer style="margin-top:50px; color:#666;">
+    © 2025 unzioUZ. جميع الحقوق محفوظة للمالك والمطور <span class="owner">أحمد عبد الحكيم</span>.
+  </footer>
+  <script>
+    async function generate() {
+      const imageFile = document.getElementById('imageInput').files[0];
+      const videoFile = document.getElementById('videoInput').files[0];
+      const mode = document.getElementById('mode').value;
+      const status = document.getElementById('status');
+      const output = document.getElementById('output');
+      const btn = document.getElementById('generateBtn');
+
+      if (mode === 'faceswap' && (!imageFile || !videoFile)) {
+        alert('الرجاء رفع صورتك والفيديو الهدف لخاصية دمج الوجه.');
+        return;
+      }
+      if (mode === 'txt2vid' && !imageFile) {
+        alert('ارفع صورة لتحويلها إلى فيديو.');
+        return;
+      }
+
+      btn.disabled = true;
+      status.textContent = '⏳ جارٍ التوليد...';
+
+      const formData = new FormData();
+      formData.append('image', imageFile);
+      if (videoFile) formData.append('video', videoFile);
+      formData.append('mode', mode);
+
+      try {
+        const response = await fetch('/.netlify/functions/generate', {
+          method: 'POST',
+          body: formData
+        });
+        const data = await response.json();
+        if (data.output) {
+          output.innerHTML = `<video controls src="${data.output}"></video>`;
+          status.textContent = '✅ تم التوليد بنجاح!';
+        } else {
+          status.textContent = '❌ فشل التوليد: ' + (data.error || 'خطأ غير معروف');
+        }
+      } catch (err) {
+        status.textContent = '❌ خطأ في الاتصال بالخادم.';
+      }
+      btn.disabled = false;
+    }
+  </script>
+</body>
+</html>
